@@ -5,6 +5,8 @@ class PublisherTransactionsGetter < BaseApiClient
   OFFLINE_NUMBER_OF_SETTLEMENTS = 2
   OFFLINE_REFERRAL_SETTLEMENT_AMOUNT = "18.81"
   OFFLINE_CONTRIBUTION_SETTLEMENT_AMOUNT = "56.81"
+  OFFLINE_CANONICAL_PUBLISHER_ID = "publishers#uuid:709033b2-0567-4ab2-9467-95ba3343e568"
+  OFFLINE_UPHOLD_ACCOUNT_ID = "bdfd128a-976e-4a42-b07a-3fab7fb2cbea"
 
   def initialize(publisher:)
     @publisher = publisher
@@ -65,6 +67,8 @@ class PublisherTransactionsGetter < BaseApiClient
 
         # Contributions in
         transactions.push({
+          "from_account" => "helloworld.com",
+          "to_account" => OFFLINE_CANONICAL_PUBLISHER_ID,
           "created_at" => "#{base_date}",
           "description" => "contributions in month x",
           "channel" => "#{channel.details.channel_identifier}",
@@ -76,6 +80,8 @@ class PublisherTransactionsGetter < BaseApiClient
 
         # Contribution fees out
         transactions.push({
+          "from_account" => OFFLINE_CANONICAL_PUBLISHER_ID,
+          "to_account" => "fees-account",
           "created_at" => "#{base_date}",
           "description" => "settlement fees for contributions",
           "channel" => "#{channel.details.channel_identifier}",
@@ -85,7 +91,10 @@ class PublisherTransactionsGetter < BaseApiClient
         })
 
         # Contribution settlement out
+        # This goes out to the publisher's uphold account
         transactions.push({
+          "from_account" => OFFLINE_CANONICAL_PUBLISHER_ID,
+          "to_account" => OFFLINE_UPHOLD_ACCOUNT_ID,
           "created_at" => "#{base_date}",
           "description" => "payout for contributions",
           "channel" => "#{channel.details.channel_identifier}",
@@ -97,12 +106,24 @@ class PublisherTransactionsGetter < BaseApiClient
 
         # Referrals in
         transactions.push({
+          "from_account" => "00001111-2222-3333-4444-555566667777",
+          "to_account" => OFFLINE_CANONICAL_PUBLISHER_ID,
           "created_at" => "#{base_date}",
           "description" => "referrals in month x",
           "channel" => "#{channel.details.channel_identifier}",
           "amount" => "#{referral_amount}",
           "transaction_type" => "referral",
           "settlement_currency" => "ETH",
+        })
+
+        # Referral depreciation
+        transactions.push({
+          "from_account" =>  OFFLINE_CANONICAL_PUBLISHER_ID,
+          "to_account" => "referral-depreciation-account",
+          "created_at" => "#{base_date}",
+          "description" => "Transaction to cancel referrals finalizing past 90 days after 2021-01-23 for legacy referrals.",
+          "amount" => "#{referral_amount}",
+          "transaction_type" => "manual",
         })
 
         # Referal settlement out
