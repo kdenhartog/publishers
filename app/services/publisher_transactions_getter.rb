@@ -7,6 +7,7 @@ class PublisherTransactionsGetter < BaseApiClient
   OFFLINE_CONTRIBUTION_SETTLEMENT_AMOUNT = "56.81"
   OFFLINE_CANONICAL_PUBLISHER_ID = "publishers#uuid:709033b2-0567-4ab2-9467-95ba3343e568"
   OFFLINE_UPHOLD_ACCOUNT_ID = "bdfd128a-976e-4a42-b07a-3fab7fb2cbea"
+  OFFLINE_PAYMENT_ACCOUNT_ID = "f6221085-e2e4-45e3-9ba8-17c6572b42fe"
 
   def initialize(publisher:)
     @publisher = publisher
@@ -106,7 +107,7 @@ class PublisherTransactionsGetter < BaseApiClient
 
         # Referrals in
         transactions.push({
-          "from_account" => "00001111-2222-3333-4444-555566667777",
+          "from_account" => OFFLINE_PAYMENT_ACCOUNT_ID,
           "to_account" => OFFLINE_CANONICAL_PUBLISHER_ID,
           "created_at" => "#{base_date}",
           "description" => "referrals in month x",
@@ -122,12 +123,14 @@ class PublisherTransactionsGetter < BaseApiClient
           "to_account" => "referral-depreciation-account",
           "created_at" => "#{base_date}",
           "description" => "Transaction to cancel referrals finalizing past 90 days after 2021-01-23 for legacy referrals.",
-          "amount" => "#{referral_amount}",
+          "amount" => "#{-(referral_amount)}",
           "transaction_type" => "manual",
         })
 
         # Referal settlement out
         transactions.push({
+          "from_account" => OFFLINE_CANONICAL_PUBLISHER_ID,
+          "to_account" => OFFLINE_UPHOLD_ACCOUNT_ID,
           "created_at" => "#{base_date}",
           "description" => "payout for referrals",
           "channel" => "#{channel.publisher.owner_identifier}",
