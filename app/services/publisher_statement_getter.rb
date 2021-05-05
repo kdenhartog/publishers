@@ -3,7 +3,7 @@ class PublisherStatementGetter < BaseApiClient
 
   class Statement
     include ActiveModel::Model
-    attr_accessor :channel, :created_at, :description, :transaction_type, :amount, :settlement_currency, :settlement_amount, :settlement_destination_type, :settlement_destination
+    attr_accessor :channel, :created_at, :description, :transaction_type, :amount, :settlement_currency, :settlement_amount, :settlement_destination_type, :settlement_destination, :from_account, :to_account
 
     UPHOLD_CONTRIBUTION = "uphold_contribution".freeze
     UPHOLD_CONTRIBUTION_SETTLEMENT = "uphold_contribution_settlement".freeze
@@ -39,6 +39,9 @@ class PublisherStatementGetter < BaseApiClient
 
   def perform
     transactions = PublisherTransactionsGetter.new(publisher: publisher).perform
+
+    # In the statements, we don't want to show transactions that balance out the accounting on eyeshade
+    transactions.delete_if { |transaction| transaction["to_account"] == PublisherTransactionsGetter::REFERRAL_DEPRECIATION_ACCOUNT }
     transactions = replace_account_identifiers_with_titles(transactions)
 
     transactions += get_uphold_transactions
@@ -68,6 +71,8 @@ class PublisherStatementGetter < BaseApiClient
         settlement_destination_type: transaction["settlement_destination_type"],
         settlement_destination: transaction["settlement_destination"],
         created_at: transaction["created_at"].to_date,
+        from_account: transaction["from_account"].to_date,
+        to_account: transaction["to_account"].to_date
       )
     end
   end
