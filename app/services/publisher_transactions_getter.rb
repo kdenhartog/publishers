@@ -9,6 +9,8 @@ class PublisherTransactionsGetter < BaseApiClient
   OFFLINE_UPHOLD_ACCOUNT_ID = "bdfd128a-976e-4a42-b07a-3fab7fb2cbea"
   OFFLINE_PAYMENT_ACCOUNT_ID = "f6221085-e2e4-45e3-9ba8-17c6572b42fe"
 
+  REFERRAL_DEPRECIATION_ACCOUNT = "referral-depreciation-account"
+
   def initialize(publisher:)
     @publisher = publisher
   end
@@ -21,7 +23,11 @@ class PublisherTransactionsGetter < BaseApiClient
       request.url("v1/accounts/#{URI.encode_www_form_component(publisher.owner_identifier)}/transactions")
     end
 
-    JSON.parse(response.body)
+    transactions = JSON.parse(response.body)
+
+    # In the statements and balances, we don't want to show transactions that balance out the accounting on eyeshade
+    transactions.reject! { |transaction| transaction["to_account"] == PublisherTransactionsGetter::REFERRAL_DEPRECIATION_ACCOUNT }
+    transactions
     # Example eyeshade response
     # [
     #   {
@@ -120,7 +126,7 @@ class PublisherTransactionsGetter < BaseApiClient
         # Referral depreciation
         transactions.push({
           "from_account" =>  OFFLINE_CANONICAL_PUBLISHER_ID,
-          "to_account" => "referral-depreciation-account",
+          "to_account" => REFERRAL_DEPRECIATION_ACCOUNT,
           "created_at" => "#{base_date}",
           "description" => "Transaction to cancel referrals finalizing past 90 days after 2021-01-23 for legacy referrals.",
           "amount" => "#{-(referral_amount)}",
