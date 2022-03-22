@@ -8,7 +8,7 @@ require "rails/test_help"
 require "webpacker"
 require "selenium/webdriver"
 require "webmock/minitest"
-require "chromedriver/helper"
+require "webdrivers/chromedriver"
 require "sidekiq/testing"
 require "test_helpers/eyeshade_helper"
 require "test_helpers/service_class_helpers"
@@ -39,7 +39,7 @@ WebMock.allow_net_connect!
 # Capybara.enable_aria_label = true
 # Capybara.default_driver = :selenium_chrome_headless
 
-Chromedriver.set_version "2.38"
+Webdrivers::Chromedriver.required_version = "2.46"
 
 Capybara.register_driver "chrome" do |app|
   capabilities = Selenium::WebDriver::Remote::Capabilities.chrome(
