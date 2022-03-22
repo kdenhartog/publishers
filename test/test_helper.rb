@@ -39,7 +39,7 @@ WebMock.allow_net_connect!
 # Capybara.enable_aria_label = true
 # Capybara.default_driver = :selenium_chrome_headless
 
-Webdrivers::Chromedriver.required_version = "2.46"
+#Webdrivers::Chromedriver.required_version = "2.46"
 
 Capybara.register_driver "chrome" do |app|
   capabilities = Selenium::WebDriver::Remote::Capabilities.chrome(
